@@ -51,6 +51,18 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     📥 Import CSV
                                 </NavLink>
+                                <NavLink
+                                    :href="route('recurring.index')"
+                                    :active="route().current('recurring*')"
+                                >
+                                    🔁 Récurrent
+                                </NavLink>
+                                <NavLink
+                                    :href="route('goals.index')"
+                                    :active="route().current('goals*')"
+                                >
+                                    🎯 Objectifs
+                                </NavLink>
                             </div>
                         </div>
 
@@ -169,6 +181,18 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('csv-import*')"
                         >
                             📥 Import CSV
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('recurring.index')"
+                            :active="route().current('recurring*')"
+                        >
+                            🔁 Récurrent
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('goals.index')"
+                            :active="route().current('goals*')"
+                        >
+                            🎯 Objectifs
                         </ResponsiveNavLink>
                     </div>
 
