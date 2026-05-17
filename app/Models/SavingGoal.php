@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SavingGoal extends Model
 {
+    protected $table = 'savings_goals';
+
     protected $fillable = ['user_id', 'name', 'target_amount', 'current_amount', 'deadline'];
 
     protected function casts(): array
