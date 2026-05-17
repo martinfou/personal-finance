@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router, useForm, Link } from '@innertiajs/vue3';
+import { Head, router, useForm, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const props = defineProps({ recurrings: Array, categories: Array });

@@ -63,6 +63,12 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     🎯 Objectifs
                                 </NavLink>
+                                <NavLink
+                                    :href="route('budgets.index')"
+                                    :active="route().current('budgets*')"
+                                >
+                                    💰 Budgets
+                                </NavLink>
                             </div>
                         </div>
 
@@ -193,6 +199,12 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('goals*')"
                         >
                             🎯 Objectifs
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('budgets.index')"
+                            :active="route().current('budgets*')"
+                        >
+                            💰 Budgets
                         </ResponsiveNavLink>
                     </div>
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecurringTransactionController;
@@ -30,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('recurring', RecurringTransactionController::class);
     Route::post('/recurring/process', [RecurringTransactionController::class, 'process'])->name('recurring.process');
     Route::resource('goals', SavingGoalController::class);
+    Route::resource('budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
