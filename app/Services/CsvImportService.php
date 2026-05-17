@@ -43,6 +43,18 @@ class CsvImportService
             'date_format' => 'Y/m/d',
             'description' => 'Date,Description,Debit,Credit',
         ],
+        'scotia' => [
+            'name' => 'Banque Scotia',
+            'delimiter' => ',',
+            'date_column' => 0,
+            'description_column' => 1,
+            'debit_column' => null,
+            'credit_column' => null,
+            'amount_column' => 2,
+            'has_header' => true,
+            'date_format' => 'Y-m-d',
+            'description' => 'Transaction Date,Description,Amount (negatives as debits)',
+        ],
         'generic' => [
             'name' => 'Générique',
             'delimiter' => ',',
