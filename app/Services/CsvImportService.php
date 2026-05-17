@@ -55,6 +55,17 @@ class CsvImportService
             'date_format' => 'Y-m-d',
             'description' => 'Transaction Date,Description,Amount (negatives as debits)',
         ],
+        'tangerine' => [
+            'name' => 'Tangerine',
+            'delimiter' => ',',
+            'date_column' => 0,
+            'description_column' => 2,
+            'debit_column' => 3,
+            'credit_column' => 4,
+            'has_header' => true,
+            'date_format' => 'Y-m-d',
+            'description' => 'Date,Transaction ID,Description,Debit,Credit',
+        ],
         'generic' => [
             'name' => 'Générique',
             'delimiter' => ',',
