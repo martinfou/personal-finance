@@ -37,7 +37,13 @@ const showingNavigationDropdown = ref(false);
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
                                 >
-                                    Dashboard
+                                    📊 Dashboard
+                                </NavLink>
+                                <NavLink
+                                    :href="route('transactions.index')"
+                                    :active="route().current('transactions*')"
+                                >
+                                    💸 Transactions
                                 </NavLink>
                             </div>
                         </div>
@@ -144,7 +150,13 @@ const showingNavigationDropdown = ref(false);
                             :href="route('dashboard')"
                             :active="route().current('dashboard')"
                         >
-                            Dashboard
+                            📊 Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('transactions.index')"
+                            :active="route().current('transactions*')"
+                        >
+                            💸 Transactions
                         </ResponsiveNavLink>
                     </div>
 
