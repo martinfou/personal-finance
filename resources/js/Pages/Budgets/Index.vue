@@ -75,7 +75,7 @@ const barColor = (pct) =>
                 </div>
 
                 <!-- Add form -->
-                <div v-if="showForm" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div v-if="showForm" class="card p-6">
                     <h3 class="font-semibold text-gray-800 mb-4">Ajouter un budget</h3>
                     <form @submit.prevent="submit" class="flex flex-wrap gap-4 items-end">
                         <div class="flex-1 min-w-[200px]">
@@ -99,7 +99,7 @@ const barColor = (pct) =>
                 <!-- Budget cards -->
                 <div v-if="budgets.length > 0" class="space-y-4">
                     <div v-for="b in budgets" :key="b.id"
-                        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                        class="card p-5 card-hover">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center gap-3">
                                 <span class="text-2xl">{{ b.category_icon }}</span>
@@ -135,7 +135,7 @@ const barColor = (pct) =>
                 </div>
 
                 <!-- Empty state -->
-                <div v-else class="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div v-else class="text-center py-16 card">
                     <p class="text-4xl mb-3">🎯</p>
                     <p class="text-base font-medium text-gray-700">Aucun budget ce mois-ci</p>
                     <p class="text-sm text-gray-400 mt-1 mb-6">Fixez une limite par catégorie pour mieux contrôler vos dépenses</p>
