@@ -45,6 +45,12 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     💸 Transactions
                                 </NavLink>
+                                <NavLink
+                                    :href="route('csv-import.index')"
+                                    :active="route().current('csv-import*')"
+                                >
+                                    📥 Import CSV
+                                </NavLink>
                             </div>
                         </div>
 
@@ -157,6 +163,12 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('transactions*')"
                         >
                             💸 Transactions
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('csv-import.index')"
+                            :active="route().current('csv-import*')"
+                        >
+                            📥 Import CSV
                         </ResponsiveNavLink>
                     </div>
 

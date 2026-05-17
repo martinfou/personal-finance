@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
@@ -19,6 +20,11 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('transactions', TransactionController::class);
+    Route::prefix('csv-import')->name('csv-import.')->group(function () {
+        Route::get('/', [CsvImportController::class, 'index'])->name('index');
+        Route::post('/preview', [CsvImportController::class, 'preview'])->name('preview');
+        Route::post('/import', [CsvImportController::class, 'import'])->name('import');
+    });
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
