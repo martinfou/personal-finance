@@ -30,6 +30,21 @@ class DashboardController extends Controller
         $income = (float) ($summary->income ?? 0);
         $expense = (float) ($summary->expense ?? 0);
 
+        $current = Carbon::create($year, $month, 1);
+        $previous = $current->copy()->subMonth();
+        $prevSummary = Transaction::where('user_id', $user->id)
+            ->whereYear('date', $previous->year)
+            ->whereMonth('date', $previous->month)
+            ->selectRaw("
+                SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
+                SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense
+            ")
+            ->first();
+
+        $prevIncome = (float) ($prevSummary->income ?? 0);
+        $prevExpense = (float) ($prevSummary->expense ?? 0);
+        $prevBalance = $prevIncome - $prevExpense;
+
         // Expenses by category (for chart)
         $byCategory = Transaction::where('user_id', $user->id)
             ->where('type', 'expense')
@@ -80,19 +95,27 @@ class DashboardController extends Controller
                     ->sum('amount');
                 return [
                     'category' => $b->category->name,
-                    'icon' => $b->category->icon,
+                    'color' => $b->category->color,
                     'limit' => (float) $b->limit_amount,
                     'spent' => $spent,
                     'remaining' => (float) $b->limit_amount - $spent,
                 ];
             });
 
+        $balance = $income - $expense;
+
         return Inertia::render('Dashboard', [
             'year' => (int) $year,
             'month' => (int) $month,
+            'isCurrentMonth' => $current->isSameMonth(now()),
             'income' => $income,
             'expense' => $expense,
-            'balance' => $income - $expense,
+            'balance' => $balance,
+            'previous' => [
+                'income' => $prevIncome,
+                'expense' => $prevExpense,
+                'balance' => $prevBalance,
+            ],
             'byCategory' => $byCategory,
             'recentTransactions' => $recentTransactions,
             'budgets' => $budgets,
