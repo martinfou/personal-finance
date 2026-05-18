@@ -1,9 +1,10 @@
 <script setup>
+import AppIcon from '@/Components/AppIcon.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps({ banks: Array });
+defineProps({ banks: Array });
 
 const file = ref(null);
 const selectedBank = ref('');
@@ -26,9 +27,7 @@ function submit() {
     if (!file.value || !selectedBank.value) return;
     uploadForm.file = file.value;
     uploadForm.bank = selectedBank.value;
-    uploadForm.post(route('csv-import.preview'), {
-        preserveScroll: true,
-    });
+    uploadForm.post(route('csv-import.preview'), { preserveScroll: true });
 }
 
 function formatBytes(bytes) {
@@ -41,66 +40,75 @@ function formatBytes(bytes) {
     <Head title="Import CSV" />
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight">📥 Importation CSV</h2>
+            <div>
+                <h2 class="font-display text-2xl font-semibold text-ink-900">Importation CSV</h2>
+                <p class="mt-1 text-sm text-ink-500">Relevés bancaires canadiens</p>
+            </div>
         </template>
 
-        <div class="py-6">
-            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 space-y-6">
-
-                <!-- Step 1: Choose Bank -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="font-semibold text-gray-700 mb-1">1. Choisir votre banque</h3>
-                    <p class="text-sm text-gray-400 mb-4">Sélectionnez votre institution financière pour le format du relevé</p>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <button v-for="bank in banks" :key="bank.id"
-                            @click="selectedBank = bank.id"
-                            :class="['p-4 rounded-xl border-2 text-left transition-all',
-                                selectedBank === bank.id
-                                    ? 'border-indigo-500 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300']">
-                            <p class="font-medium text-sm">{{ bank.name }}</p>
-                            <p class="text-xs text-gray-400 mt-1">{{ bank.is_generic ? 'Mappage manuel' : 'Format automatique' }}</p>
-                        </button>
-                    </div>
+        <div class="mx-auto max-w-3xl space-y-6">
+            <div class="card p-6">
+                <h3 class="font-semibold text-ink-800">1. Choisir votre banque</h3>
+                <p class="mt-1 text-sm text-ink-500">Format du relevé selon l'institution</p>
+                <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <button
+                        v-for="bank in banks"
+                        :key="bank.id"
+                        type="button"
+                        :class="[
+                            'rounded-xl border-2 p-4 text-left transition-colors',
+                            selectedBank === bank.id
+                                ? 'border-brand-600 bg-brand-50'
+                                : 'border-surface-150 hover:border-ink-200',
+                        ]"
+                        @click="selectedBank = bank.id"
+                    >
+                        <p class="text-sm font-semibold text-ink-900">{{ bank.name }}</p>
+                        <p class="mt-1 text-xs text-ink-500">{{ bank.is_generic ? 'Mappage manuel' : 'Format automatique' }}</p>
+                    </button>
                 </div>
-
-                <!-- Step 2: Upload File -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="font-semibold text-gray-700 mb-1">2. Téléverser le fichier CSV</h3>
-                    <p class="text-sm text-gray-400 mb-4">Format .csv depuis votre banque en ligne</p>
-
-                    <div @dragover.prevent="dragOver = true" @dragleave="dragOver = false" @drop.prevent="onDrop"
-                        :class="['border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all',
-                            dragOver ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-gray-400']"
-                        @click="$refs.fileInput.click()">
-
-                        <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="onFileSelect" />
-
-                        <div v-if="file">
-                            <p class="text-3xl mb-2">📄</p>
-                            <p class="font-medium text-sm">{{ file.name }}</p>
-                            <p class="text-xs text-gray-400 mt-1">{{ formatBytes(file.size) }}</p>
-                            <button @click.stop="file = null" class="text-xs text-red-500 mt-2">Retirer</button>
-                        </div>
-                        <div v-else>
-                            <p class="text-3xl mb-2">📂</p>
-                            <p class="text-sm text-gray-500">Glissez votre fichier CSV ici ou <span class="text-indigo-600 font-medium">parcourez</span></p>
-                            <p class="text-xs text-gray-400 mt-1">Fichier .csv seulement, max 2 MB</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Submit -->
-                <button @click="submit" :disabled="!file || !selectedBank || uploadForm.processing"
-                    class="w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                    {{ uploadForm.processing ? 'Analyse en cours...' : 'Aperçu des transactions →' }}
-                </button>
-
-                <Link :href="route('transactions.index')" class="block text-center text-sm text-gray-400 hover:text-gray-600">
-                    ← Retour aux transactions
-                </Link>
             </div>
+
+            <div class="card p-6">
+                <h3 class="font-semibold text-ink-800">2. Téléverser le fichier</h3>
+                <p class="mt-1 text-sm text-ink-500">Fichier .csv exporté de votre banque en ligne</p>
+                <div
+                    class="mt-4 cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors"
+                    :class="dragOver ? 'border-brand-500 bg-brand-50' : 'border-surface-150 hover:border-ink-300'"
+                    @dragover.prevent="dragOver = true"
+                    @dragleave="dragOver = false"
+                    @drop.prevent="onDrop"
+                    @click="$refs.fileInput.click()"
+                >
+                    <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="onFileSelect" />
+                    <div v-if="file">
+                        <AppIcon name="arrow-down-tray" icon-class="mx-auto h-8 w-8 text-brand-700" />
+                        <p class="mt-3 text-sm font-semibold text-ink-900">{{ file.name }}</p>
+                        <p class="mt-1 text-xs text-ink-500">{{ formatBytes(file.size) }}</p>
+                        <button type="button" class="mt-2 text-xs font-medium text-red-500" @click.stop="file = null">Retirer</button>
+                    </div>
+                    <div v-else>
+                        <AppIcon name="arrow-down-tray" icon-class="mx-auto h-8 w-8 text-ink-400" />
+                        <p class="mt-3 text-sm text-ink-600">
+                            Glissez votre CSV ici ou <span class="font-semibold text-brand-700">parcourez</span>
+                        </p>
+                        <p class="mt-1 text-xs text-ink-400">Max. 2 Mo</p>
+                    </div>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                class="btn-primary w-full py-3"
+                :disabled="!file || !selectedBank || uploadForm.processing"
+                @click="submit"
+            >
+                {{ uploadForm.processing ? 'Analyse en cours…' : 'Aperçu des transactions' }}
+            </button>
+
+            <Link :href="route('transactions.index')" class="block text-center text-sm text-ink-400 hover:text-ink-600">
+                Retour aux transactions
+            </Link>
         </div>
     </AuthenticatedLayout>
 </template>

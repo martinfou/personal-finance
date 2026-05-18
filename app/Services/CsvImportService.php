@@ -66,6 +66,18 @@ class CsvImportService
             'date_format' => 'Y-m-d',
             'description' => 'Date,Transaction ID,Description,Debit,Credit',
         ],
+        'cibc_visa' => [
+            'name' => 'CIBC Visa (carte de crédit)',
+            'delimiter' => ',',
+            'date_column' => 0,
+            'description_column' => 1,
+            'debit_column' => 2,
+            'credit_column' => 3,
+            'has_header' => true,
+            'auto_detect_columns' => true,
+            'date_format' => 'Y-m-d',
+            'description' => 'Date,Description,Debit,Credit (achats = débit, paiements = crédit)',
+        ],
         'generic' => [
             'name' => 'Générique',
             'delimiter' => ',',
@@ -89,6 +101,10 @@ class CsvImportService
 
         if ($bank === 'generic' && $columnMap) {
             return $this->parseGeneric($rows, $columnMap, $startIndex, $header);
+        }
+
+        if (! empty($config['auto_detect_columns']) && ! empty($header)) {
+            $config = $this->resolveColumnsFromHeader($header, $config);
         }
 
         return $this->parseBankFormat($rows, $config, $startIndex);
@@ -168,7 +184,9 @@ class CsvImportService
         $transactions = [];
         for ($i = $startIndex; $i < count($rows); $i++) {
             $row = $rows[$i];
-            if (empty(array_filter($row))) continue;
+            if (empty(array_filter($row))) {
+                continue;
+            }
 
             $date = $row[$config['date_column']] ?? '';
             $description = $row[$config['description_column']] ?? '';
@@ -176,29 +194,95 @@ class CsvImportService
             $type = 'expense';
 
             if (isset($config['amount_column'])) {
-                $amount = abs((float) str_replace(['$', ','], '', $row[$config['amount_column']] ?? '0'));
-                $type = (float) ($row[$config['amount_column']] ?? 0) >= 0 ? 'income' : 'expense';
+                $raw = $this->parseAmount($row[$config['amount_column']] ?? '0');
+                $amount = abs($raw);
+                $type = $raw >= 0 ? 'income' : 'expense';
             } elseif (isset($config['debit_column']) && isset($config['credit_column'])) {
-                $debit = (float) str_replace(['$', ','], '', $row[$config['debit_column']] ?? '0');
-                $credit = (float) str_replace(['$', ','], '', $row[$config['credit_column']] ?? '0');
+                $debit = $this->parseAmount($row[$config['debit_column']] ?? '0');
+                $credit = $this->parseAmount($row[$config['credit_column']] ?? '0');
                 if ($credit > 0) {
                     $amount = $credit;
                     $type = 'income';
-                } else {
+                } elseif ($debit > 0) {
                     $amount = $debit;
+                    $type = 'expense';
                 }
             }
 
-            if ($amount && $amount > 0) {
+            if ($amount && $amount > 0 && $this->isValidDate($date)) {
                 $transactions[] = [
-                    'date' => $date,
+                    'date' => $this->normalizeDate($date),
                     'description' => $description,
                     'amount' => $amount,
                     'type' => $type,
                 ];
             }
         }
+
         return $transactions;
+    }
+
+    private function resolveColumnsFromHeader(array $header, array $config): array
+    {
+        $normalized = array_map(fn ($h) => strtolower(trim($h)), $header);
+
+        $find = function (array $patterns) use ($normalized): ?int {
+            foreach ($patterns as $pattern) {
+                foreach ($normalized as $index => $column) {
+                    if (str_contains($column, $pattern)) {
+                        return $index;
+                    }
+                }
+            }
+
+            return null;
+        };
+
+        return array_merge($config, array_filter([
+            'date_column' => $find(['date']),
+            'description_column' => $find(['description', 'descr', 'details', 'merchant']),
+            'debit_column' => $find(['debit', 'withdrawal', 'withdrawals', 'charge', 'retrait']),
+            'credit_column' => $find(['credit', 'deposit', 'deposits', 'dépôt', 'depot']),
+        ], fn ($value) => $value !== null));
+    }
+
+    private function parseAmount(string $value): float
+    {
+        $cleaned = str_replace(['$', ',', ' '], '', trim($value));
+        if ($cleaned === '' || $cleaned === '-') {
+            return 0.0;
+        }
+
+        if (preg_match('/^\((.+)\)$/', $cleaned, $matches)) {
+            return -1 * (float) $matches[1];
+        }
+
+        return (float) $cleaned;
+    }
+
+    private function isValidDate(string $date): bool
+    {
+        if ($date === '' || strtolower($date) === 'date') {
+            return false;
+        }
+
+        return strtotime($this->normalizeDate($date)) !== false;
+    }
+
+    private function normalizeDate(string $date): string
+    {
+        $date = trim($date);
+
+        foreach (['Y-m-d', 'Y/m/d', 'm/d/Y', 'd/m/Y', 'M j, Y'] as $format) {
+            $parsed = \DateTime::createFromFormat($format, $date);
+            if ($parsed && $parsed->format($format) === $date) {
+                return $parsed->format('Y-m-d');
+            }
+        }
+
+        $timestamp = strtotime($date);
+
+        return $timestamp ? date('Y-m-d', $timestamp) : $date;
     }
 
     private function parseGeneric(array $rows, array $columnMap, int $startIndex, array $header): array

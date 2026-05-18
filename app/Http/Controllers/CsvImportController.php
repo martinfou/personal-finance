@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\CsvImportService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class CsvImportController extends Controller
@@ -29,8 +31,7 @@ class CsvImportController extends Controller
 
         try {
             $preview = $csv->preview($request->file('file'), $request->bank);
-            // Store file for later import
-            $path = $request->file('file')->store('csv-imports');
+            $path = $request->file('file')->store('csv-imports', 'local');
             $preview['path'] = $path;
 
             return Inertia::render('CsvImport/Preview', $preview);
@@ -47,14 +48,24 @@ class CsvImportController extends Controller
             'column_map' => 'nullable|array',
         ]);
 
-        $file = new \Illuminate\Http\UploadedFile(
-            storage_path('app/' . $request->path),
-            basename($request->path)
+        $disk = Storage::disk('local');
+
+        if (! $disk->exists($request->path)) {
+            return redirect()->route('csv-import.index')
+                ->with('error', 'Le fichier CSV a expiré. Veuillez le téléverser à nouveau.');
+        }
+
+        $file = new UploadedFile(
+            $disk->path($request->path),
+            basename($request->path),
+            test: true,
         );
 
         try {
             $transactions = $csv->parse($file, $request->bank, $request->column_map);
             $result = $csv->store($request->user()->id, $transactions);
+
+            $disk->delete($request->path);
 
             if ($result['errors']) {
                 return redirect()->route('csv-import.index')

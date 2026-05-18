@@ -1,5 +1,9 @@
 <script setup>
+import CategoryBadge from '@/Components/CategoryBadge.vue';
+import EmptyState from '@/Components/EmptyState.vue';
+import MonthNavigator from '@/Components/MonthNavigator.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { formatMoney } from '@/utils/money';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -15,137 +19,100 @@ const props = defineProps({
 const showForm = ref(false);
 const form = useForm({ category_id: null, limit_amount: '', month: props.monthStr });
 
-function setCategory(id) { form.category_id = id; }
+const unusedCategories = ref(
+    props.categories.filter((c) => !props.budgets.some((b) => b.category_id === c.id)),
+);
 
 function submit() {
     form.post(route('budgets.store'), {
         preserveScroll: true,
-        onSuccess: () => { showForm.value = false; form.reset('limit_amount'); },
+        onSuccess: () => {
+            showForm.value = false;
+            form.reset('limit_amount');
+        },
     });
 }
 
 function remove(id) {
-    if (confirm('Supprimer ce budget ?'))
+    if (confirm('Supprimer ce budget ?')) {
         router.delete(route('budgets.destroy', id), { preserveScroll: true });
+    }
 }
-
-function changeMonth(delta) {
-    let m = props.month + delta;
-    let y = props.year;
-    if (m > 12) { m = 1; y++; }
-    if (m < 1) { m = 12; y--; }
-    router.get('/budgets', { year: y, month: m }, { preserveState: true, replace: true });
-}
-
-function f(n) { return '$' + Number(n).toFixed(2); }
-
-const unusedCategories = ref(props.categories.filter(c =>
-    !props.budgets.some(b => b.category_id === c.id)
-));
 
 const barColor = (pct) =>
-    pct >= 100 ? 'bg-red-500' :
-    pct >= 75  ? 'bg-amber-500' :
-    pct >= 50  ? 'bg-indigo-500' :
-                 'bg-emerald-500';
+    pct >= 100 ? 'bg-red-500' : pct >= 75 ? 'bg-amber-500' : pct >= 50 ? 'bg-brand-600' : 'bg-emerald-500';
 </script>
 
 <template>
     <Head title="Budgets" />
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-900">🎯 Budgets</h2>
-                <button @click="showForm = !showForm"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-all shadow-sm">
-                    <span class="text-lg leading-none">+</span>
-                    <span>Nouveau budget</span>
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-display text-2xl font-semibold text-ink-900">Budgets</h2>
+                    <p class="mt-1 text-sm text-ink-500">Limites par catégorie, mois par mois</p>
+                </div>
+                <button type="button" class="btn-primary text-sm shrink-0" @click="showForm = !showForm">
+                    {{ showForm ? 'Annuler' : 'Nouveau budget' }}
                 </button>
             </div>
         </template>
 
-        <div class="py-6">
-            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="mx-auto max-w-4xl space-y-6">
+            <MonthNavigator :year="year" :month="month" :month-label="monthLabel" base-path="/budgets" />
 
-                <!-- Month nav -->
-                <div class="flex items-center justify-center gap-4">
-                    <button @click="changeMonth(-1)" class="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors">←</button>
-                    <span class="font-semibold text-base text-gray-700 min-w-[140px] text-center">{{ monthLabel }}</span>
-                    <button @click="changeMonth(1)" class="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors">→</button>
-                </div>
+            <div v-if="showForm" class="card p-6">
+                <h3 class="mb-4 font-semibold text-ink-800">Ajouter un budget</h3>
+                <form @submit.prevent="submit" class="flex flex-wrap items-end gap-4">
+                    <div class="min-w-[200px] flex-1">
+                        <label class="label">Catégorie</label>
+                        <select v-model="form.category_id" required class="input mt-1">
+                            <option v-for="c in unusedCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
+                        </select>
+                    </div>
+                    <div class="w-40">
+                        <label class="label">Limite</label>
+                        <input v-model="form.limit_amount" type="number" step="0.01" min="1" required class="input mt-1" placeholder="0.00" />
+                    </div>
+                    <button type="submit" class="btn-primary" :disabled="form.processing">Enregistrer</button>
+                </form>
+            </div>
 
-                <!-- Add form -->
-                <div v-if="showForm" class="card p-6">
-                    <h3 class="font-semibold text-gray-800 mb-4">Ajouter un budget</h3>
-                    <form @submit.prevent="submit" class="flex flex-wrap gap-4 items-end">
-                        <div class="flex-1 min-w-[200px]">
-                            <label class="block text-xs font-medium text-gray-500 mb-1.5">Catégorie</label>
-                            <select v-model="form.category_id" required class="w-full rounded-xl border-gray-200 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <option v-for="c in unusedCategories" :key="c.id" :value="c.id">{{ c.icon }} {{ c.name }}</option>
-                            </select>
-                        </div>
-                        <div class="w-40">
-                            <label class="block text-xs font-medium text-gray-500 mb-1.5">Limite ($)</label>
-                            <input v-model="form.limit_amount" type="number" step="0.01" min="1" placeholder="0.00" required
-                                class="w-full rounded-xl border-gray-200 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                        <button type="submit" :disabled="form.processing"
-                            class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-sm">
-                            Enregistrer
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Budget cards -->
-                <div v-if="budgets.length > 0" class="space-y-4">
-                    <div v-for="b in budgets" :key="b.id"
-                        class="card p-5 card-hover">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-3">
-                                <span class="text-2xl">{{ b.category_icon }}</span>
-                                <div>
-                                    <p class="font-semibold text-sm text-gray-800">{{ b.category_name }}</p>
-                                    <p class="text-xs text-gray-400 mt-0.5">
-                                        <span :class="b.remaining >= 0 ? 'text-emerald-600' : 'text-red-500'">
-                                            {{ f(b.spent) }}
-                                        </span>
-                                        / {{ f(b.limit) }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span :class="['text-sm font-semibold', b.remaining >= 0 ? 'text-emerald-600' : 'text-red-500']">
-                                    {{ b.remaining >= 0 ? 'Reste ' + f(b.remaining) : 'Dépassé ' + f(Math.abs(b.remaining)) }}
-                                </span>
-                                <button @click="remove(b.id)" class="text-gray-300 hover:text-red-400 text-sm transition-colors">✕</button>
-                            </div>
-                        </div>
-                        <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div :class="['h-full rounded-full transition-all duration-500', barColor(b.percentage)]"
-                                :style="{ width: Math.min(b.percentage, 100) + '%' }">
-                            </div>
-                        </div>
-                        <div class="flex justify-between mt-1.5">
-                            <span :class="['text-xs font-medium', b.percentage >= 100 ? 'text-red-500' : 'text-gray-400']">
-                                {{ b.percentage }}%
+            <div v-if="budgets.length > 0" class="space-y-4">
+                <div v-for="b in budgets" :key="b.id" class="card-interactive p-5">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <CategoryBadge :name="b.category_name" :color="b.category_color || '#6b6358'" />
+                        <div class="flex items-center gap-3">
+                            <span :class="['text-sm font-semibold', b.remaining >= 0 ? 'text-emerald-600' : 'text-red-500']">
+                                {{ b.remaining >= 0 ? 'Reste ' + formatMoney(b.remaining) : 'Dépassé ' + formatMoney(Math.abs(b.remaining)) }}
                             </span>
-                            <span class="text-xs text-gray-400">limite: {{ f(b.limit) }}</span>
+                            <button type="button" class="text-sm text-ink-400 hover:text-red-500" @click="remove(b.id)">Supprimer</button>
                         </div>
                     </div>
+                    <div class="h-2.5 overflow-hidden rounded-full bg-surface-100">
+                        <div
+                            :class="['h-full rounded-full transition-all duration-500', barColor(b.percentage)]"
+                            :style="{ width: Math.min(b.percentage, 100) + '%' }"
+                        />
+                    </div>
+                    <div class="mt-1.5 flex justify-between text-xs">
+                        <span :class="['font-medium', b.percentage >= 100 ? 'text-red-500' : 'text-ink-500']">{{ b.percentage }}%</span>
+                        <span class="text-ink-400">{{ formatMoney(b.spent) }} / {{ formatMoney(b.limit) }}</span>
+                    </div>
                 </div>
-
-                <!-- Empty state -->
-                <div v-else class="text-center py-16 card">
-                    <p class="text-4xl mb-3">🎯</p>
-                    <p class="text-base font-medium text-gray-700">Aucun budget ce mois-ci</p>
-                    <p class="text-sm text-gray-400 mt-1 mb-6">Fixez une limite par catégorie pour mieux contrôler vos dépenses</p>
-                    <button @click="showForm = true" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-all shadow-sm">
-                        Créer mon premier budget
-                    </button>
-                </div>
-
-                <Link :href="route('dashboard')" class="block text-center text-sm text-gray-400 hover:text-gray-600 pt-2">← Retour au tableau de bord</Link>
             </div>
+
+            <EmptyState
+                v-else
+                title="Aucun budget ce mois-ci"
+                description="Fixez une limite par catégorie pour mieux contrôler vos dépenses."
+            >
+                <template #action>
+                    <button type="button" class="btn-primary text-sm" @click="showForm = true">Créer mon premier budget</button>
+                </template>
+            </EmptyState>
+
+            <Link :href="route('dashboard')" class="block text-center text-sm text-ink-400 hover:text-ink-600">Retour au tableau de bord</Link>
         </div>
     </AuthenticatedLayout>
 </template>

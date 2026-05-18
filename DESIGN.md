@@ -3,40 +3,39 @@
 ## Design System
 
 ### Typography
-- **Font family:** System UI (Inter via Tailwind)
-- **Scale:** text-xs through text-4xl
-- **Headings:** font-semibold, leading-tight
-- **Body:** text-sm text-gray-600, leading-relaxed
-- **Monetary values:** font-semibold, colored by type (emerald income / red expense / blue balance)
+- **UI:** Plus Jakarta Sans (`font-sans`)
+- **Display:** Fraunces (`font-display`) for page titles and stat values
+- **Scale:** `text-2xs` (labels) → `text-sm` (body) → `text-lg` (subheads) → `text-2xl`+ (display)
+- **Monetary values:** `font-display`, semibold; emerald (income), red (expense), brand (balance)
 
 ### Color Palette
-- **Primary:** Indigo-600 (#4F46E5) — actions, links, navigation
-- **Income:** Emerald-500 (#10B981) — positive amounts
-- **Expense:** Red-500 (#EF4444) — negative amounts
-- **Balance:** Blue-600 (#2563EB) — net position
-- **Surface:** White cards on Gray-100 background
-- **Text:** Gray-900 primary, Gray-500 secondary, Gray-400 tertiary
-- **Budget warnings:** Amber-500 at 75%+, Red-500 at 100%+
+- **Ink:** warm neutrals `ink-50` … `ink-950` (text, surfaces)
+- **Brand:** sage/teal `brand-50` … `brand-950` (accent, active nav, progress)
+- **Surface:** off-white cards on `surface-50` page background
+- **Semantic:** emerald-600 income, red-500 expense, amber-500 budget warning
+
+### Components (CSS utilities in `app.css`)
+- `.card` — white panel, soft shadow
+- `.card-interactive` — hover lift for clickable cards
+- `.btn-primary` — ink-900 fill
+- `.btn-secondary`, `.btn-ghost`, `.btn-danger`
+- `.input`, `.label`
+- `.stat`, `.stat-value`, `.stat-label`
 
 ### Spatial
-- **Page max-width:** 7xl (80rem)
-- **Card padding:** p-6
-- **Card gap:** gap-4 grid
-- **Card radius:** rounded-xl (12px)
-- **Card shadow:** shadow-sm with border border-gray-100
-- **Section spacing:** space-y-6
+- **Page max-width:** `max-w-7xl` (authenticated), `max-w-4xl` for focused flows
+- **Card padding:** `p-6` standard, `p-8` auth
+- **Section rhythm:** `space-y-6` / `space-y-8`
 
 ### Interaction
-- **Buttons:** rounded-lg, text-sm font-medium, hover states
-- **Links:** text-indigo-600 hover:text-indigo-800
-- **Form inputs:** rounded-lg, border-gray-300, focus:ring-indigo-500
-- **Transitions:** transition-all duration-150 ease-in-out
-
-### Responsive
-- **Mobile-first:** single column on small screens
-- **Tablet:** 2-column grids at md: breakpoint
-- **Desktop:** multi-column at lg: breakpoint
+- Solid nav (no backdrop blur)
+- Month navigator with « Aujourd'hui » when not current month
+- Type toggle segmented control (no emoji)
+- Category shown as color dot + name (`CategoryBadge`)
 
 ### Empty States
-- Icon (3rem) + title (text-lg) + description (text-sm text-gray-400)
-- CTA button to take first action
+- `EmptyState` component: icon slot, title, description, optional CTA
+
+### Responsive
+- Mobile-first; nav collapses to hamburger below `lg`
+- Guest auth: single column mobile, split panel desktop (solid ink panel, no blur)
