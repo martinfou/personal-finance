@@ -17,6 +17,7 @@ const navItems = [
     { route: 'recurring.index', match: 'recurring*', icon: 'arrow-path', label: 'Récurrent' },
     { route: 'goals.index', match: 'goals*', icon: 'flag', label: 'Objectifs' },
     { route: 'budgets.index', match: 'budgets*', icon: 'wallet', label: 'Budgets' },
+    { route: 'reports.monthly', match: 'reports*', icon: 'document-text', label: 'Rapports' },
 ];
 </script>
 

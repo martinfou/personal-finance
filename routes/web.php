@@ -4,6 +4,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecurringTransactionController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SavingGoalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
@@ -32,6 +33,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/recurring/process', [RecurringTransactionController::class, 'process'])->name('recurring.process');
     Route::resource('goals', SavingGoalController::class);
     Route::resource('budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/monthly', [ReportController::class, 'monthly'])->name('monthly');
+        Route::get('/export-csv', [ReportController::class, 'exportCsv'])->name('export-csv');
+    });
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
