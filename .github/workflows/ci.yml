@@ -54,4 +54,7 @@ jobs:
         run: php artisan migrate --force --no-interaction
 
       - name: Run tests
-        run: php artisan test --no-interaction
+        # Pas de --no-interaction ici : `php artisan test` transmet les options
+        # inconnues a PHPUnit, qui les refuse ("Unknown option
+        # \"--no-interaction\"", exit 2). La CI est deja non interactive.
+        run: php artisan test
